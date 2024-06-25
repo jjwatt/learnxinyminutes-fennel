@@ -7,7 +7,7 @@
 ;; the rest are the arguments.
 
 ;;----------------------------------------------------
-;; 1. Variables and flow control.
+;; 1. Primitives and Operators
 ;;----------------------------------------------------
 
 ;; (local ...) defines a var inside the whole file's scope.
@@ -33,10 +33,26 @@
 (- 2 1) ; => 1
 (* 1 2) ; => 2
 (/ 2 1) ; => 2.0
+;; TODO: Lua has more operators than this. e.g. //
 
 ;; Equality is =
 (= 1 1) ; => true
 (= 2 1) ; => false
+
+;; Nesting forms works as you expect
+(+ 1 (- 3 2)) ; = 1 + (3 - 2) => 2
+
+;; Types
+;;;;;;;;;;
+
+;; Fennel uses Lua's types for booleans, strings & numbers.
+;; Use `type` to inspect them.
+(type 1) ; => "number"
+(type 1.0) ; => "number"
+(type "")  ; => "string"
+(type false) ; => "boolean"
+(type nil) ; => "nil"
+
 
 ;; Booleans
 true ; for true
@@ -45,6 +61,4 @@ false ; for false
 (and 0 false) ; => false
 (or false 0) ; => 0
 
-;; Nesting forms works as you expect
-(+ 1 (- 3 2)) ; = 1 + (3 - 2) => 2
 
