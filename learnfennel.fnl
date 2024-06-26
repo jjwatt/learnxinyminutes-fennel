@@ -71,6 +71,8 @@ false ; for false
 (and 0 false) ; => false
 (or false 0) ; => 0
 
+;; All values other than nil or false are treated as true.
+
 ;; Collections & Sequences
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -113,7 +115,90 @@ false ; for false
 (let [t {:a [2 3 4]}] (?. t :a 4 :b)) ; => nil
 (let [t {:a [2 3 4 {:b 42}]}] (?. t :a 4 :b)) ; => 42
 
-; Functions
+;;----------------------------------------------------
+;; 3. Flow Control
+;;----------------------------------------------------
+
+;; `if` checks a condition and evaluates the corresponding body.
+;; Accepts any number of condition/body pairs. If an odd number of
+;; args is given, the last value is treated as a catch-all "else,"
+;; similar to cond in other lisps.
+
+(let [x (math.random 64)]
+  (if (= 0 (% x 10))
+      "multiple of ten"
+      (= 0 (% x 2))
+      "even"
+      "I dunno, something else"))
+;; All values other than nil or false are treated as true.
+
+;; when takes a single condition and evalutes the rest as a body if
+;; it's truthy. Intended for side-effects. The last form is the return
+;; value.
+(when launch-missiles?
+  (power-on)
+  (open-doors)
+  (fire))
+
+;; Loops & Iteration
+;;;;;;;;;;;;;;;;;;;;;
+
+;; each general iteration
+;; `each` runs the body once for each value provided by the iterator.
+(each [key value (pairs mytbl)]
+  (print "executing key")
+  (print (f value)))
+
+;; Any loop can be terminated early by placing an &until clause at the
+;; end of the bindings
+(local out [])
+(each [_ value (pairs tbl) &until (< max-len (length out))]
+  (table.insert out value))
+
+;; `for` is a numeric loop with start, stop and optional step.
+(for [i 1 10 2]
+  (log-number i)
+  (print i)) ;; print odd numbers under 10
+
+;; Like each, loops using for can also be terminated early with an
+;; &until clause
+(var x 0)
+(for [i 1 128 &until (maxed-out? x)]
+  (set x (+ x i)))
+
+;; while loops over a body until a condition is met
+;; Returns nil.
+(var done? false)
+(while (not done?)
+  (print :not-done)
+  (when (< 0.95 (math.random))
+    (set done? true)))
+;; while uses the native lua while loop
+
+;; `do` evaluate multiple forms returning last value
+;; Accepts any number of forms and evaluates all of them in order,
+;; returning the last value. This is used for inserting side-effects
+;; into a form which accepts only a single value, such as in a body of
+;; an if when multiple clauses make it so you can't use when. Some
+;; lisps call this begin or progn.
+(if launch-missiles?
+    (do
+      (power-on)
+      (open-doors)
+      (fire))
+    false-alarm?
+    (promote lt-petrov))
+
+;; Many functions and macros like fn & let have an implicit do at the
+;; start, so you don't have to add it to use multiple forms.
+
+;; icollect, collect table comprehension macros
+
+
+;;----------------------------------------------------
+;; 4. Functions
+;;----------------------------------------------------
+;; Functions
 ;;;;;;;;;;;;;;;;;;;;
 
 ;; Use fn to create new functions. A function always returns its last
@@ -209,6 +294,7 @@ false ; for false
 ;; longer visible. The last form in the body is used as the return
 ;; value.
 
+
 ;; Destructuring
 ;;;;;;;;;;;;;;;;;
 
@@ -242,3 +328,49 @@ false ; for false
 (let [{:a a :b b &as all} {:a 1 :b 2 :c 3 :d 4}]
   (+ a b all.c all.d)) ; => 10
 
+;; case pattern matching
+;; Evaluates its first argument, then searches thru the subsequent
+;; pattern/body clauses to find one where the pattern matches the
+;; value, and evaluates the corresponding body. Pattern matching can
+;; be thought of as a combination of destructuring and conditionals.
+(case mytable
+  59      :will-never-match-hopefully
+  [9 q 5] (print :q q)
+  [1 a b] (+ a b))
+
+;; Patterns can be tables, literal values, or symbols. Any symbol is
+;; implicitly checked to be not nil. Symbols can be repeated in an
+;; expression to check for the same value.
+(case mytable
+  ;; the first and second values of mytable are not nil and are the same value
+  [a a] (* a 2)
+  ;; the first and second values are not nil and are not the same value
+  [a b] (+ a b))
+
+;; It's important to note that expressions are checked in order! In
+;; the above example, since [a a] is checked first
+
+;; You may allow a symbol to optionally be nil by prefixing it with ?.
+(case mytable
+  ;; not-nil, maybe-nil
+  [a ?b] :maybe-one-maybe-two-values
+  ;; maybe-nil == maybe-nil, both are nil or both are the same value
+  [?a ?a] :maybe-none-maybe-two-same-values
+  ;; maybe-nil, maybe-nil
+  [?a ?b] :maybe-none-maybe-one-maybe-two-values)
+
+;; Symbols prefixed by an _ are ignored and may stand in as positional
+;; placeholders or markers for "any" value - including a nil value. A
+;; single _ is also often used at the end of a case expression to
+;; define an "else" style fall-through value.
+(case mytable
+  ;; not-nil, anything
+  [a _b] :maybe-one-maybe-two-values
+  ;; anything, anything (different to the previous ?a example!)
+  ;; note this is effectively the same as []
+  [_a _a] :maybe-none-maybe-one-maybe-two-values
+  ;; anything, anything
+  ;; this is identical to [_a _a] and in this example would never actually match.
+  [_a _b] :maybe-none-maybe-one-maybe-two-values
+  ;; when no other clause matched, in this case any non-table value
+  _ :no-match)
