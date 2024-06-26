@@ -98,7 +98,7 @@ false ; for false
 
 ;; . table lookup looks up a given key in a table. Multiple arguments
 ;; will perform nested lookup.
-(. t key1)
+(. t :key1)
 
 (let [t {:a [2 3 4]}] (. t :a 2)) ; => 3
 
@@ -106,3 +106,55 @@ false ; for false
 ;; this and can just use table.field (dot notation).
 
 ;; Nil-safe ?. table lookup
+;; Looks up a given key in a table. Multiple arguments will perform
+;; nested lookup. If any subsequent keys is not presnet, will
+;; short-circuit to nil.
+(?. t :key1) ; => "value"
+(let [t {:a [2 3 4]}] (?. t :a 4 :b)) ; => nil
+(let [t {:a [2 3 4 {:b 42}]}] (?. t :a 4 :b)) ; => 42
+
+; Functions
+;;;;;;;;;;;;;;;;;;;;
+
+;; Use fn to create new functions. A function always returns its last
+;; statement.
+(fn [] "Hello World") ; => #<function: 0x55630f9d7f20>
+
+; (You need extra parens to call it)
+((fn [] "Hello World")) ; => "Hello World"
+
+;; Assign a function to a var
+(local hello-world (fn [] "Hello World"))
+(hello-world) ; => "Hello World"
+
+;; You can use fn and name a function.
+(fn hello-world [] "Hello World") ; => "Hello World"
+
+;; The [] is the list of arguments to the function.
+(fn hello [name]
+  (.. "Hello " name))
+(hello "Steve") ; => "Hello Steve"
+
+;; Hash function literal shorthand
+
+;; hashfn is a special function that you can abbreviate as #
+;; #foo expands to (hashfn foo)
+
+;; Hash functions are anonymous functions of one form, with implicitly
+;; named arguments.
+
+#(+ $1 $2) ;; same as
+(hashfn (+ $1 $2)) ; implementation detail; don't use directly
+;; same as
+(fn [a b] (+a b))
+
+;; A lone $ in a hash function is treated as ana alias for $1.
+#(+ $ 1)
+
+#$ ; same as (fn [x] x) (aka the identity function
+#val ; same as (fn [] val)
+#[$1 $2 $3] ; same as (fn [a b c] [a b c])
+
+;; Binding
+;;;;;;;;;;;;;
+
