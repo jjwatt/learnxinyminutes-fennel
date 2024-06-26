@@ -52,8 +52,9 @@
 ;; TODO: find some bitwise operator examples
 ;; (lshift 1) ; => 2
 
-;; Types
-;;;;;;;;;;
+;;----------------------------------------------------
+;; 2. Types
+;;----------------------------------------------------
 
 ;; Fennel uses Lua's types for booleans, strings & numbers.
 ;; Use `type` to inspect them.
