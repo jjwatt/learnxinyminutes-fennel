@@ -135,6 +135,46 @@ false ; for false
   (.. "Hello " name))
 (hello "Steve") ; => "Hello Steve"
 
+;; Will accept any number of arguments. ones in excess of the declared
+;; ones are ignored, and if not enough arguments are supplied to cover
+;; the declared ones, the remaining ones are given values of nil.
+
+;; Providing a name that's a table field will cause it to be inserted
+;; in a table instead of bound as a local
+(local functions {})
+
+(fn functions.p [x y z]
+  (print (* x (+ y z))))
+
+;; equivalent to:
+(set functions.p (fn [x y z]
+                   (print (* x (+ y z)))))
+
+;; Like Lua, functions in Fennel support tail-call optimization,
+;; allowing (among other things) functions to recurse indefinitely
+;; without overflowing the stack, provided the call is in a tail
+;; position.
+
+;; The final form in this and all other function forms is used as the
+;; return value.
+
+;; (lambda [...])
+;; Creates a function like fn does, but throws an error at runtime if
+;; any of the listed arguments are nil, unless its identifier begins
+;; with ?.
+(lambda [x ?y z]
+  (print (- x (* (or ?y 1) z))))
+
+;; Note that the Lua runtime will fill in missing arguments with nil
+;; when they are not provided by the caller, so an explicit nil
+;; argument is no different than omitting an argument.
+
+;; Docstrings and metadata
+;; The fn, lambda, λ and macro forms accept an optional docstring.
+(fn pxy [x y]
+  "Print the sum of x and y"
+  (print (+ x y)))
+
 ;; Hash function literal shorthand
 
 ;; hashfn is a special function that you can abbreviate as #
@@ -155,6 +195,23 @@ false ; for false
 #val ; same as (fn [] val)
 #[$1 $2 $3] ; same as (fn [a b c] [a b c])
 
+;; TODO: mention lambda and how it checks args
+
 ;; Binding
 ;;;;;;;;;;;;;
+
+;; Local binding: `me` is bound to "Bob" only within the (let ...)
+(let [me "Bob"]
+  "Alice"
+  me) ; => "Bob"
+
+;; Outside the body of the let, the bindings it introduces are no
+;; longer visible. The last form in the body is used as the return
+;; value.
+
+;; Destructuring
+;;;;;;;;;;;;;;;;;
+
+;; Any time you bind a local, you can destructure it if the value is a
+;; table or a function call which returns multiple values
 
