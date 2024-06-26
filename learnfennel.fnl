@@ -215,3 +215,30 @@ false ; for false
 ;; Any time you bind a local, you can destructure it if the value is a
 ;; table or a function call which returns multiple values
 
+(let [(x y z) (unpack [10 9 8])]
+  (+ x y z)) ; => 27
+
+(let [[a b c] [1 2 3]]
+  (+ a b c)) ; => 6
+
+;; If a table key is a string with the same name as the local you want
+;; to bind to, you can use shorthand of just : for the key name
+;; followed by the local name. This works for both creating tables and
+;; destructuring them.
+
+(let [{:msg message : val} {:msg "hello there" :val 19}]
+  (print message)
+  val) ; prints "hello there" and returns 19
+
+;; When destructuring a sequential table, you can capture all the
+;; remainder of the table in a local by using &
+
+(let [[a b & c] [1 2 3 4 5 6]]
+  (table.concat c ",")) ; => "3,4,5,6"
+
+;; When destructuring a non-sequential table, you can capture the
+;; original table along with the destructuring by using &as
+
+(let [{:a a :b b &as all} {:a 1 :b 2 :c 3 :d 4}]
+  (+ a b all.c all.d)) ; => 10
+
