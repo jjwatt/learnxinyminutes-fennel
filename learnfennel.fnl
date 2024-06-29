@@ -194,6 +194,92 @@ false ; for false
 
 ;; icollect, collect table comprehension macros
 
+;; The icollect macro takes a "iterator binding table" in the format
+;; that each takes, and returns a sequential table containing all the
+;; values produced by each iteration of the macro's body. This is
+;; similar to how map works in several other languages, but it is a
+;; macro, not a function.
+
+;; If the value is nil, it is omitted from the return table. This is
+;; analogous to filter in other languages.
+
+(icollect [_ v (ipairs [1 2 3 4 5 6])]
+  (if (< 2 v) (* v v)))
+;; -> [9 16 25 36]
+;; equivalent to:
+(let [tbl []]
+  (each [_ v (ipairs [1 2 3 4 5 6])]
+    (tset tbl (+ (length tbl) 1) (if (< 2 v) (* v v))))
+  tbl)
+
+;; The collect macro is almost identical, except that the body should
+;; return two things: a key and a value.
+(collect [k v (pairs {:apple "red" :orange "orange" :lemon "yellow"})]
+  (if (not= v "yellow")
+      (values (.. "color-" v) k)))
+;; -> {:color-orange "orange" :color-red "apple"}
+;; equivalent to:
+(let [tbl {}]
+  (each [k v (pairs {:apple "red" :orange "orange"})]
+    (if (not= v "yellow")
+      (match (values (.. "color-" v) k)
+        (key value) (tset tbl key value))))
+  tbl)
+
+;; If the key and value are given directly in the body of collect and
+;; not nested in an outer form, then the values can be omitted for
+;; brevity
+(collect [k v (pairs {:a 85 :b 52 :c 621 :d 44})]
+  k (* v 5))
+
+;; If the key and value are given directly in the body of collect and
+;; not nested in an outer form, then the values can be omitted for
+;; brevity
+(icollect [_ x (ipairs [2 3]) &into [9]]
+  (* x 11))
+;; -> [9 22 33]
+
+;; accumulate
+;; Runs through an iterator and performs accumulation, similar to fold
+;; and reduce commonly used in functional programming languages. Like
+;; collect and icollect, it takes an iterator binding table and an
+;; expression as its arguments. The difference is that in accumulate,
+;; the first two items in the binding table are used as an
+;; "accumulator" variable and its initial value. For each iteration
+;; step, it evaluates the given expression and its value becomes the
+;; next accumulator variable. accumulate returns the final value of
+;; the accumulator variable.
+(accumulate [sum 0
+             i n (ipairs [10 20 30 40])]
+  (+ sum n)) ; -> 100
+
+;; faccumulate range accumulation Identical to accumulate, but instead
+;; of taking an iterator and the same bindings as each, it accepts the
+;; same bindings as for and will iterate the numerical range. Accepts
+;; &until just like for and accumulate.
+(faccumulate [n 0 i 1 5] (+ n i)) ; => 15
+
+;; fcollect range comprehension
+;; Similarly to icollect, fcollect provides a way of building a
+;; sequential table. Unlike icollect, instead of an iterator it
+;; traverses a range, as accepted by the for special. The &into and
+;; &until clauses work the same as in icollect.
+(fcollect [i 0 10 2]
+  (if (> i 2) (* i i)))
+;; -> [16 36 64 100]
+;; equivalent to:
+(let [tbl {}]
+  (for [i 0 10 2]
+    (if (> i 2)
+        (table.insert tbl (* i i))))
+  tbl)
+
+;; `values` Returns multiple values from a function. Usually used to
+;; signal failure by returning nil followed by a message.
+(fn [filename]
+  (if (valid-file-name? filename)
+      (open-file filename)
+      (values nil (.. "Invalid filename: " filename))))
 
 ;;----------------------------------------------------
 ;; 4. Functions
@@ -280,14 +366,13 @@ false ; for false
 #val ; same as (fn [] val)
 #[$1 $2 $3] ; same as (fn [a b c] [a b c])
 
-;; TODO: mention lambda and how it checks args
-
 ;; Binding
 ;;;;;;;;;;;;;
 
+;; Use `let` to bind local vars to values.
 ;; Local binding: `me` is bound to "Bob" only within the (let ...)
 (let [me "Bob"]
-  "Alice"
+  (print "returning Bob")
   me) ; => "Bob"
 
 ;; Outside the body of the let, the bindings it introduces are no
@@ -374,3 +459,94 @@ false ; for false
   [_a _b] :maybe-none-maybe-one-maybe-two-values
   ;; when no other clause matched, in this case any non-table value
   _ :no-match)
+
+;; Other
+;;;;;;;;;;;;
+
+;; The `:` method call
+;; Looks up a function in a table and calls it with the table as its
+;; first argument. This is a common idiom in many Lua APIs, including
+;; some built-in ones. Just like Lua, you can perform a method call by
+;; calling a function name where : separates the table variable and
+;; method name.
+(let [f (assert (io.open "hello" "w"))]
+  (f:write "world")
+  (f:close))
+
+;; If the name of the method or the table containing it isn't fixed,
+;; you can use : followed by the table and then the method's name to
+;; allow it to be a dynamic string instead
+(let [f (assert (io.open "hello" "w"))
+      method1 :write
+      method2 :close]
+  (: f method1 "world")
+  (: f method2))
+
+;; Unlike Lua, there's nothing special about defining functions that
+;; get called this way; typically it is given an extra argument called
+;; self but this is just a convention; you can name it anything.
+(local t {})
+(fn t.enable [self]
+  (set self.enabled? true))
+(t:enable)
+
+
+;; ->, ->>, -?> and -?>> threading macros The -> macro takes its first
+;; value and splices it into the second form as the first
+;; argument. The result of evaluating the second form gets spliced
+;; into the first argument of the third form, and so on.
+(-> 52
+    (+ 91 2) ; (+ 52 91 2)
+    (- 8)    ; (- (+ 52 91 2) 8)
+    (print "is the answer")) ; (print (- (+ 52 91 2) 8) "is the answer")
+
+;; The ->> macro works the same, except it splices it into the last
+;; position of each form instead of the first.  -?> and -?>>, the
+;; thread maybe macros, are similar to -> & ->> but they also do
+;; checking after the evaluation of each threaded form. If the result
+;; is false or nil then the threading stops and the result is
+;; returned. -?> splices the threaded value as the first argument,
+;; like ->, and -?>> splices it into the last position, like ->>.
+;; This example shows how to use them to avoid accidentally indexing a
+;; nil value
+(-?> {:a {:b {:c 42}}}
+     (. :a)
+     (. :missing)
+     (. :c)) ; -> nil
+(-?>> :a
+      (. {:a :b})
+      (. {:b :missing})
+      (. {:c 42})) ; -> nil
+;; While -> and ->> pass multiple values thru without any trouble, the
+;; checks in -?> and -?>> prevent the same from happening there
+;; without performance overhead, so these pipelines are limited to a
+;; single value.
+
+;; doto
+;; Similarly, the doto macro splices the first value into subsequent
+;; forms. However, it keeps the same value and continually splices the
+;; same thing in rather than using the value from the previous form
+;; for the next form.
+(doto (io.open "/tmp/err.log")
+  (: :write contents)
+  (: :close))
+;; equivalent to:
+(let [x (io.open "/tmp/err.log")]
+  (: x :write contents)
+  (: x :close)
+  x)
+
+;; tail!
+;; the tail! form asserts that its argument is called in a tail
+;; position. You can use this when the code depends on tail call
+;; optimization; that way if the code is changed so that the recursive
+;; call is no longer in the tail position, it will cause a compile
+;; error instead of overflowing the stack later on large data sets.
+(fn process-all [data i]
+  (case (process (. data i))
+    :done (print "Process completed.")
+    :next (process-all data (+ i 1))
+    :skip (do (tail! (process-all data (+ i 2)))
+;;             ^^^^^ Compile error: Must be in tail position
+              (print "Skipped" (+ i 1)))))
+
