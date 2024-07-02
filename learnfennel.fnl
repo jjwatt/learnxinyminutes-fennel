@@ -5,10 +5,10 @@
 
 ;; The first thing in parentheses is a function or macro to call, and
 ;; the rest are the arguments.
-
-;;----------------------------------------------------
-;; 1. Primitives and Operators
-;;----------------------------------------------------
+                        
+;; ------------------------- ;;
+;; 1. Primitives & Operators ;;
+;; ------------------------- ;;
 
 ;; (local ...) defines a var inside the whole file's scope.
 (local s "walternate") ;; Immutable strings like Python.
@@ -52,9 +52,9 @@
 ;; TODO: find some bitwise operator examples
 ;; (lshift 1) ; => 2
 
-;;----------------------------------------------------
-;; 2. Types
-;;----------------------------------------------------
+;; -------- ;;
+;; 2. Types ;;
+;; -------- ;;
 
 ;; Fennel uses Lua's types for booleans, strings & numbers.
 ;; Use `type` to inspect them.
@@ -73,8 +73,9 @@ false ; for false
 
 ;; All values other than nil or false are treated as true.
 
-;; Collections & Sequences
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;,------------------------
+;;| Collections & Sequences
+;;`------------------------
 
 ;; tables are the only compound data structure in Lua and fennel.
 ;; Similar to php arrays or js objects, they are
@@ -115,15 +116,14 @@ false ; for false
 (let [t {:a [2 3 4]}] (?. t :a 4 :b)) ; => nil
 (let [t {:a [2 3 4 {:b 42}]}] (?. t :a 4 :b)) ; => 42
 
-;;----------------------------------------------------
-;; 3. Flow Control
-;;----------------------------------------------------
+;; --------------- ;;
+;; 3. Flow Control ;;
+;; --------------- ;;
 
 ;; `if` checks a condition and evaluates the corresponding body.
 ;; Accepts any number of condition/body pairs. If an odd number of
 ;; args is given, the last value is treated as a catch-all "else,"
 ;; similar to cond in other lisps.
-
 (let [x (math.random 64)]
   (if (= 0 (% x 10))
       "multiple of ten"
@@ -132,7 +132,7 @@ false ; for false
       "I dunno, something else"))
 ;; All values other than nil or false are treated as true.
 
-;; when takes a single condition and evalutes the rest as a body if
+;; `when` takes a single condition and evalutes the rest as a body if
 ;; it's truthy. Intended for side-effects. The last form is the return
 ;; value.
 (when launch-missiles?
@@ -140,10 +140,11 @@ false ; for false
   (open-doors)
   (fire))
 
-;; Loops & Iteration
-;;;;;;;;;;;;;;;;;;;;;
+;;,------------------
+;;| Loops & Iteration
+;;`------------------
 
-;; each general iteration
+;; each: general iteration
 ;; `each` runs the body once for each value provided by the iterator.
 (each [key value (pairs mytbl)]
   (print "executing key")
@@ -192,7 +193,10 @@ false ; for false
 ;; Many functions and macros like fn & let have an implicit do at the
 ;; start, so you don't have to add it to use multiple forms.
 
-;; icollect, collect table comprehension macros
+;;,-----------------------
+;;| `collect` & `icollect`
+;;`-----------------------
+;; icollect, collect: table comprehension macros
 
 ;; The icollect macro takes a "iterator binding table" in the format
 ;; that each takes, and returns a sequential table containing all the
@@ -202,7 +206,6 @@ false ; for false
 
 ;; If the value is nil, it is omitted from the return table. This is
 ;; analogous to filter in other languages.
-
 (icollect [_ v (ipairs [1 2 3 4 5 6])]
   (if (< 2 v) (* v v)))
 ;; -> [9 16 25 36]
@@ -212,7 +215,7 @@ false ; for false
     (tset tbl (+ (length tbl) 1) (if (< 2 v) (* v v))))
   tbl)
 
-;; The collect macro is almost identical, except that the body should
+;; The `collect` macro is almost identical, except that the body should
 ;; return two things: a key and a value.
 (collect [k v (pairs {:apple "red" :orange "orange" :lemon "yellow"})]
   (if (not= v "yellow")
@@ -281,11 +284,9 @@ false ; for false
       (open-file filename)
       (values nil (.. "Invalid filename: " filename))))
 
-;;----------------------------------------------------
-;; 4. Functions
-;;----------------------------------------------------
-;; Functions
-;;;;;;;;;;;;;;;;;;;;
+;; ------------ ;;
+;; 4. Functions ;;
+;; ------------ ;;
 
 ;; Use fn to create new functions. A function always returns its last
 ;; statement.
@@ -366,32 +367,29 @@ false ; for false
 #val ; same as (fn [] val)
 #[$1 $2 $3] ; same as (fn [a b c] [a b c])
 
-;; Binding
-;;;;;;;;;;;;;
-
+;;,--------
+;;| Binding
+;;`--------
 ;; Use `let` to bind local vars to values.
 ;; Local binding: `me` is bound to "Bob" only within the (let ...)
 (let [me "Bob"]
   (print "returning Bob")
   me) ; => "Bob"
-
 ;; Outside the body of the let, the bindings it introduces are no
 ;; longer visible. The last form in the body is used as the return
 ;; value.
 
 
-;; Destructuring
-;;;;;;;;;;;;;;;;;
-
+;;,--------------
+;;| Destructuring
+;;`--------------
 ;; Any time you bind a local, you can destructure it if the value is a
 ;; table or a function call which returns multiple values
-
 (let [(x y z) (unpack [10 9 8])]
   (+ x y z)) ; => 27
 
 (let [[a b c] [1 2 3]]
   (+ a b c)) ; => 6
-
 ;; If a table key is a string with the same name as the local you want
 ;; to bind to, you can use shorthand of just : for the key name
 ;; followed by the local name. This works for both creating tables and
@@ -460,8 +458,9 @@ false ; for false
   ;; when no other clause matched, in this case any non-table value
   _ :no-match)
 
-;; Other
-;;;;;;;;;;;;
+;;,------
+;;| Other
+;;`------
 
 ;; The `:` method call
 ;; Looks up a function in a table and calls it with the table as its
