@@ -495,8 +495,8 @@ false ; for false
 ;; argument. The result of evaluating the second form gets spliced
 ;; into the first argument of the third form, and so on.
 (-> 52
-    (+ 91 2) ; (+ 52 91 2)
-    (- 8)    ; (- (+ 52 91 2) 8)
+    (+ 91 2)                 ; (+ 52 91 2)
+    (- 8)                    ; (- (+ 52 91 2) 8)
     (print "is the answer")) ; (print (- (+ 52 91 2) 8) "is the answer")
 
 ;; The ->> macro works the same, except it splices it into the last
