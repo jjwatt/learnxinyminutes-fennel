@@ -28,12 +28,7 @@
 
 (local num 42) ;; Numbers can be integer or floating point.
 
-;; Math is straightforward
-(+ 1 1) ; => 2
-(- 2 1) ; => 1
-(* 1 2) ; => 2
-(/ 2 1) ; => 2.0
-;; TODO: Lua has more operators than this. e.g. //
+;; TODO: Explain 'local, 'var, 'set & 'global
 
 ;; Equality is =
 (= 1 1) ; => true
@@ -295,7 +290,7 @@ false ; for false
 ; (You need extra parens to call it)
 ((fn [] "Hello World")) ; => "Hello World"
 
-;; Assign a function to a var
+;; Assign a function to a local variable
 (local hello-world (fn [] "Hello World"))
 (hello-world) ; => "Hello World"
 
