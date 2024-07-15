@@ -11,13 +11,13 @@
 ;; ------------------------- ;;
 
 ;; (local ...) defines a var inside the whole file's scope.
-(local s "walternate") ;; Immutable strings like Python.
+(local s "walternate") ; Immutable strings like Python.
 
 ;; local supports destructuring and multiple value binding.
 ;; (covered later).
 
 ;; Strings are utf8 byte arrays
-"λx:(μα.α→α).xx"              ; can include Unicode characters
+"λx:(μα.α→α).xx" ; can include Unicode characters
 
 ;; .. will create a string out of it's arguments.
 ;; It will coerce numbers but nothing else.
@@ -67,6 +67,41 @@ false ; for false
 (or false 0) ; => 0
 
 ;; All values other than nil or false are treated as true.
+
+;;,--------
+;;| Binding
+;;`--------
+
+;; Use `let` to bind local vars to values.
+;; Local binding: `me` is bound to "Bob" only within the (let ...)
+(let [me "Bob"]
+  (print "returning Bob")
+  me) ; => "Bob"
+;; Outside the body of the let, the bindings it introduces are no
+;; longer visible. The last form in the body is used as the return
+;; value. `set` does not work on `let` bound locals.
+
+;; `local` introduces a new local inside an existing scope. Similar to
+;; let but without a body argument. Recommended for use at the
+;; top-level of a file for locals which will be used throughout the
+;; file. `set` does not work on `locals`
+(local tau-approx 6.28318)
+
+;; `var` introduces a new local inside an existing scope which may have its
+;; value changed. Identical to local apart from allowing set to work
+;; on it. `set` works on `vars`
+(var x 83)
+
+;; `set` local variable or table field
+;; Changes the value of a variable introduced with `var`. Will not work
+;; on `globals` or `let`/`local`-bound locals.
+(set x (+ x 91)) ; var
+
+;; Can also be used to change a field of a table, even if the table is
+;; bound with `let` or `local`. If the table field name is static, use
+;; `tbl.field`; if the field name is dynamic, use `(. tbl field)`.
+(let [t {:a 4 :b 8}] ; static table field
+  (set t.a 2) t) ; => {:a 2 :b 8}
 
 ;;,------------------------
 ;;| Collections & Sequences
@@ -361,19 +396,6 @@ false ; for false
 #$ ; same as (fn [x] x) (aka the identity function
 #val ; same as (fn [] val)
 #[$1 $2 $3] ; same as (fn [a b c] [a b c])
-
-;;,--------
-;;| Binding
-;;`--------
-;; Use `let` to bind local vars to values.
-;; Local binding: `me` is bound to "Bob" only within the (let ...)
-(let [me "Bob"]
-  (print "returning Bob")
-  me) ; => "Bob"
-;; Outside the body of the let, the bindings it introduces are no
-;; longer visible. The last form in the body is used as the return
-;; value.
-
 
 ;;,--------------
 ;;| Destructuring
