@@ -28,8 +28,6 @@
 
 (local num 42) ;; Numbers can be integer or floating point.
 
-;; TODO: Explain 'local, 'var, 'set & 'global
-
 ;; Equality is =
 (= 1 1) ; => true
 (= 2 1) ; => false
@@ -108,8 +106,8 @@ false ; for false
 ;;`------------------------
 
 ;; tables are the only compound data structure in Lua and fennel.
-;; Similar to php arrays or js objects, they are
-;; hash-lookup dicts that can also be used as lists.
+;; Similar to PHP arrays or JavaScript objects, they are
+;; hash-lookup dictionaries that can also be used as lists.
 
 ;; tables can be treated as sequential or non-sequential: as hashmaps
 ;; or lists/arrays.
@@ -411,24 +409,46 @@ false ; for false
 ;; to bind to, you can use shorthand of just : for the key name
 ;; followed by the local name. This works for both creating tables and
 ;; destructuring them.
-
 (let [{:msg message : val} {:msg "hello there" :val 19}]
   (print message)
   val) ; prints "hello there" and returns 19
 
 ;; When destructuring a sequential table, you can capture all the
 ;; remainder of the table in a local by using &
-
 (let [[a b & c] [1 2 3 4 5 6]]
   (table.concat c ",")) ; => "3,4,5,6"
 
 ;; When destructuring a non-sequential table, you can capture the
 ;; original table along with the destructuring by using &as
-
 (let [{:a a :b b &as all} {:a 1 :b 2 :c 3 :d 4}]
   (+ a b all.c all.d)) ; => 10
+              
+;;,-----------------------
+;;| Multiple value binding
+;;`-----------------------                   
+;; In most contexts where you can make a new binding, you can use
+;; multiple value binding.
+(let [x (values 1 2 3)] x) ; = > 1
+(let [(file-handle message code) (io.open "fooblah.blah")]
+  message) ; => "fooblah.blah: No such file or directory"
+(do
+  (local (_ _ z) (table.unpack [:a :b :c :d :e]))
+  z) ; => c
 
-;; case pattern matching
+;; tset sets the field of a given table to a new value.
+(let [tbl {:d 32}
+      field :d]
+  (tset tbl field 19) tbl) ; => {:d 19}
+;; You can provide multiple successive field names to perform
+;; nested sets.
+(let [tbl {:a
+           {:b {}}}
+      field :c]
+  (tset tbl :a :b field "d") tbl) ; => .. .. {:a {:b {:c "d"}}}
+
+;;,------------------------
+;;| `case` pattern matching
+;;`------------------------
 ;; Evaluates its first argument, then searches thru the subsequent
 ;; pattern/body clauses to find one where the pattern matches the
 ;; value, and evaluates the corresponding body. Pattern matching can
