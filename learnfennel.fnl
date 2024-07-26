@@ -107,9 +107,9 @@ false ; for false
 (let [x (values 1 2 3)]
   x) ; => 1
 
-;;,------------------------
-;;| Collections & Sequences
-;;`------------------------
+;;,--------------------------------
+;;| Collections & Sequences: Tables
+;;`--------------------------------
 
 ;; Tables are the only compound data structure in Lua and fennel.
 ;; Similar to php arrays or js objects, they are
