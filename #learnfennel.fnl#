@@ -101,49 +101,13 @@ false ; for false
 (let [t {:a 4 :b 8}] ; static table field
   (set t.a 2) t) ; => {:a 2 :b 8}
 
-;; In any context where you can make a new binding, you can use
-;; multiple value binding. Otherwise, you will only capture the first
-;; value.
-(let [x (values 1 2 3)]
-  x) ; => 1
+;;,------------------------
+;;| Collections & Sequences
+;;`------------------------
 
-;; `global` set global variable
-;; Sets a global variable to a new value. Note that there is no
-;; distinction between introducing a new global and changing the value
-;; of an existing one. This supports destructuring and multiple-value
-;; binding.
-(global tbl {:a 4 :b 8})
-(global prettyprint (fn [x] (print (fennel.view x))))
-
-;;,--------------------------
-;;| Prettyprint and .fennelrc
-;;`--------------------------
-;; `prettyprint` is a good function to have in your repl
-
-;; Return values in the repl will get pretty-printed, but calling
-;; (print tbl) will emit output like table: 0x55a3a8749ef0. If you
-;; don't already have one, it's recommended for debugging to define a
-;; printer function which calls `fennel.view` on its argument before
-;; printing it.
-(local fennel (require :fennel))
-(fn _G.pp [x] (print
-               (fennel.view x)))
-;; Notice that adding it to `_G` puts the function in the global
-;; table, similar to what `global` would do.  The fennel documentation
-;; says that using `_G` is the preferred method of defining and using
-;; globals.
-;; If you add this definition to your ~/.fennelrc
-;; file it will be available in the standard repl.
-(prettyprint tbl)
-(pp tbl)
-
-;;,--------------------------------
-;;| Collections & Sequences: Tables
-;;`--------------------------------
-
-;; Tables are the only compound data structure in Lua and fennel.
-;; Similar to php arrays or js objects, they are
-;; hash-lookup dicts that can also be used as lists.
+;; tables are the only compound data structure in Lua and fennel.
+;; Similar to PHP arrays or JavaScript objects, they are hash-lookup
+;; dictionaries that can also be used as lists.
 
 ;; tables can be treated as sequential or non-sequential: as hashmaps
 ;; or lists/arrays.
@@ -180,28 +144,10 @@ false ; for false
 (let [t {:a [2 3 4]}] (?. t :a 4 :b)) ; => nil
 (let [t {:a [2 3 4 {:b 42}]}] (?. t :a 4 :b)) ; => 42
 
-;; The table module
-(let [t [1 2 3]]
-  (table.insert t 2 "a") ; t is now [1 "a" 2 3]
-  (table.insert t "last") ; now [1 "a" 2 3 "last"]
-  (print (table.remove t)) ; prints "last"
-  (table.remove t 1) ; t is now ["a" 2 3]
-  (print (table.concat t ", "))) ; prints "a, 2, 3"
-
-;; The table.sort function sorts a table in-place, as a
-;; side-effect. It takes an optional comparator function which should
-;; return true when its first argument is less than the second.
-
-;; The table.unpack function returns all the elements in the table as
-;; multiple values. Note that table.unpack is just unpack in Lua 5.1.
-;; This will make `unpack` work in both.
-(var unpack (or _G.unpack table.unpack))
-;; See "prettyprint" section about printing tables
-
-
 ;; --------------- ;;
 ;; 3. Flow Control ;;
 ;; --------------- ;;
+
 ;; `if` checks a condition and evaluates the corresponding body.
 ;; Accepts any number of condition/body pairs. If an odd number of
 ;; args is given, the last value is treated as a catch-all "else,"
@@ -280,10 +226,10 @@ false ; for false
 ;;`-----------------------
 ;; icollect, collect: table comprehension macros
 
-;; The icollect macro takes a "iterator binding table" in the same
-;; format that `each` takes, and returns a sequential table containing
-;; all the values produced by each iteration of the macro's body. This
-;; is similar to how map works in several other languages, but it is a
+;; The icollect macro takes a "iterator binding table" in the format
+;; that each takes, and returns a sequential table containing all the
+;; values produced by each iteration of the macro's body. This is
+;; similar to how map works in several other languages, but it is a
 ;; macro, not a function.
 
 ;; If the value is nil, it is omitted from the return table. This is
@@ -312,8 +258,8 @@ false ; for false
   tbl)
 
 ;; If the key and value are given directly in the body of collect and
-;; not nested in an outer form, then the `values` call can be omitted
-;; for brevity
+;; not nested in an outer form, then the values can be omitted for
+;; brevity
 (collect [k v (pairs {:a 85 :b 52 :c 621 :d 44})]
   k (* v 5))
 
@@ -338,17 +284,17 @@ false ; for false
              i n (ipairs [10 20 30 40])]
   (+ sum n)) ; -> 100
 
-;; `faccumulate` range accumulation Identical to accumulate, but
-;; instead of taking an iterator and the same bindings as `each`, it
-;; accepts the same bindings as `for` and will iterate the numerical
-;; range. Accepts `&until` just like `for` and `accumulate`.
+;; faccumulate range accumulation Identical to accumulate, but instead
+;; of taking an iterator and the same bindings as each, it accepts the
+;; same bindings as for and will iterate the numerical range. Accepts
+;; &until just like for and accumulate.
 (faccumulate [n 0 i 1 5] (+ n i)) ; => 15
 
-;; `fcollect` range comprehension Similarly to `icollect`, `fcollect`
-;; provides a way of building a sequential table. Unlike `icollect`,
-;; instead of an iterator it traverses a range, as accepted by the
-;; `for` special. The `&into` and `&until` clauses work the same as in
-;; `icollect.`
+;; fcollect range comprehension
+;; Similarly to icollect, fcollect provides a way of building a
+;; sequential table. Unlike icollect, instead of an iterator it
+;; traverses a range, as accepted by the for special. The &into and
+;; &until clauses work the same as in icollect.
 (fcollect [i 0 10 2]
   (if (> i 2) (* i i)))
 ;; -> [16 36 64 100]
@@ -449,9 +395,9 @@ false ; for false
 #val ; same as (fn [] val)
 #[$1 $2 $3] ; same as (fn [a b c] [a b c])
 
-;; --------------------------------------------
-;; 5. Destructuring, Binding & Pattern Matching
-;; --------------------------------------------
+;;,--------------
+;;| Destructuring
+;;`--------------
 ;; Any time you bind a local, you can destructure it if the value is a
 ;; table or a function call which returns multiple values
 (let [(x y z) (unpack [10 9 8])]
@@ -510,7 +456,7 @@ false ; for false
 (case mytable
   59      :will-never-match-hopefully
   [9 q 5] (print :q q)
-  [1 a b] (+ a b))q
+  [1 a b] (+ a b))
 
 ;; Patterns can be tables, literal values, or symbols. Any symbol is
 ;; implicitly checked to be not nil. Symbols can be repeated in an
@@ -549,115 +495,9 @@ false ; for false
   ;; when no other clause matched, in this case any non-table value
   _ :no-match)
 
-;; You can match with multiple return values with
-;; parenthesis, like you can with destructuring `let`
-(case (io.open "/some/file")
-  (nil msg) (report-error msg)
-  f (read-file f))
-
-;;,--------------
-;;| Guard Clauses
-;;`--------------
-;; If you need to match on something more general than
-;; a structure, use guard clauses:
-(case [91 12 53]
-  (where [a b c] (= 5 a)) :will-not-match
-  (where [a b c]
-         (= 0 (math.fmod
-               (+ a b c) 2))
-         (= 91 a))
-  c) ; -> 53
-;; Each form after the pattern is a condition. All conditions must
-;; evaluate to true for the pattern to match.
-
-;; If several patterns share the same body & guards, such patterns can
-;; be with the `or` special in the `where` clause.
-(case [5 1 2]
-  (where (or [a 3 9] [a 1 2]) (= 5 a))
-  "Either [5 3 9] or [5 1 2]"
-  _ "anything else")
-
-;; Symbols bound inside a case pattern are independent from any
-;; existing symbols in the current scope, Sometimes it may be
-;; desirable to match against an existing value in the outer scope. To
-;; do this we can "pin" a binding inside the pattern with an existing
-;; outer binding with the unary (= binding-name) form. The unary (=
-;; binding-name) form is only valid in a case pattern and must be
-;; inside a (where) guard.
-(let [x 1]
-  (case [1]
-    ;; 1 == 1
-    (where [(= x)]) x
-    _ :no-match)) ; -> 1
-;; Pinning is only required inside the pattern. Outer bindings are
-;; automatically available inside guards and bodies as long as the
-;; name has not been rebound in the pattern.
-
-;; Note: The case macro can be used in place of the if-let macro from
-;; Clojure. The reason Fennel doesn't have if-let is that case makes
-;; it redundant.
-
-;;,-------------------------
-;;| `match` pattern matching
-;;`-------------------------
-;; match is conceptually equivalent to case, except symbols in the
-;; patterns are always pinned with outer-scope symbols if they exist.
-(let [x 95]
-  (match [52 85 95]
-    [b a a] :no         ; because a=85 and a=95
-    [x y z] :no         ; because x=95 and x=52
-    [a b x] :yes)) ; a and b are fresh values while x=95 and x=95
-
-;;,-----------------------------------------------------
-;;| `case-try` & `match-try` for matching multiple steps
-;;`-----------------------------------------------------
-;; Evaluates a series of pattern matching steps. The value from the
-;; first expression is matched against the first pattern. If it
-;; matches, the first body is evaluated and its value is matched
-;; against the second pattern, etc.
-;; 
-;; If there is a (catch pat1 body1 pat2 body2 ...) form at the end,
-;; any mismatch from the steps will be tried against these patterns in
-;; sequence as a fallback just like a normal case. If no catch pattern
-;; matches, nil is returned.
-;; 
-;; If there is no catch, the mismatched value will be returned as the
-;; value of the entire expression.
-(fn handle [conn token]
-  (case-try (conn:receive :*l)
-    input (parse input)
-    (command-name params (= token)) (commands.get command-name)
-    command (pcall command (table.unpack params))
-    (catch
-     (_ :timeout) nil
-     (_ :closed) (pcall disconnect conn "connection closed")
-     (_ msg) (print "Error handling input" msg))))
-
-;; This is useful when you want to perform a series of steps, any of
-;; which could fail. The catch clause lets you keep all your error
-;; handling in one place. Note that there are two ways to indicate
-;; failure in Fennel and Lua: using the assert/error functions or
-;; returning nil followed by some data representing the failure. This
-;; form only works on the latter, but you can use pcall to transform
-;; error calls into values.
-
-;; `match-try` for matching multiple steps
-;; Unlike case-try, match-try will pin values in a given catch block
-;; with those in the original steps.
-(fn handle [conn token]
-  (match-try (conn:receive :*l)
-    input (parse input)
-    (command-name params token) (commands.get command-name)
-    command (pcall command (table.unpack params))
-    (catch
-      (_ :timeout) nil
-      (_ :closed) (pcall disconnect conn "connection closed")
-      (_ msg) (print "Error handling input" msg))))
-
-
-;; ---------
-;; 6. Other
-;; ---------
+;;,------
+;;| Other
+;;`------
 
 ;; The `:` method call
 ;; Looks up a function in a table and calls it with the table as its
