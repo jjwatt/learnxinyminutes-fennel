@@ -199,9 +199,9 @@ false ; for false
 ;; See "prettyprint" section about printing tables
 
 
-;; --------------- ;;
-;; 3. Flow Control ;;
-;; --------------- ;;
+;; --------------------- ;;
+;; 3. Basic Flow Control ;;
+;; --------------------- ;;
 ;; `if` checks a condition and evaluates the corresponding body.
 ;; Accepts any number of condition/body pairs. If an odd number of
 ;; args is given, the last value is treated as a catch-all "else,"
@@ -366,6 +366,9 @@ false ; for false
       (open-file filename)
       (values nil (.. "Invalid filename: " filename))))
 
+;; See the Destructuring and Matching sections for more advanced Flow
+;; Control.
+
 ;; ------------ ;;
 ;; 4. Functions ;;
 ;; ------------ ;;
@@ -449,9 +452,9 @@ false ; for false
 #val ; same as (fn [] val)
 #[$1 $2 $3] ; same as (fn [a b c] [a b c])
 
-;; --------------------------------------------
-;; 5. Destructuring, Binding & Pattern Matching
-;; --------------------------------------------
+;; ---------------------------------------------;;
+;; 5. Destructuring, Binding & Pattern Matching ;;
+;; ---------------------------------------------;;
 ;; Any time you bind a local, you can destructure it if the value is a
 ;; table or a function call which returns multiple values
 (let [(x y z) (unpack [10 9 8])]
@@ -655,9 +658,9 @@ false ; for false
       (_ msg) (print "Error handling input" msg))))
 
 
-;; ---------
-;; 6. Other
-;; ---------
+;; ---------;;
+;; 6. Other ;;
+;; ---------;;
 
 ;; The `:` method call
 ;; Looks up a function in a table and calls it with the table as its
