@@ -134,7 +134,6 @@ false ; for false
 ;; globals.
 ;; If you add this definition to your ~/.fennelrc
 ;; file it will be available in the standard repl.
-(prettyprint tbl)
 (pp tbl)
 
 ;;,--------------------------------
@@ -157,7 +156,6 @@ false ; for false
 ;; Setting table keys and values
 (tset t :newKey {})    ;; Adds a new key/value pair.
 (tset t :key2 nil)     ;; Removes key2 from the table.
-
 ;; Literal notation for any (non-nil) value as key
 
 ;; length string or table length
@@ -316,8 +314,9 @@ false ; for false
 ;; for brevity
 (collect [k v (pairs {:a 85 :b 52 :c 621 :d 44})]
   k (* v 5))
+;; -> {:a 425 :b 260 :c 3105 :d 220}
 
-;; If the key and value are given directly in the body of collect and
+;; If the index and value are given directly in the body of collect and
 ;; not nested in an outer form, then the values can be omitted for
 ;; brevity
 (icollect [_ x (ipairs [2 3]) &into [9]]
@@ -411,7 +410,11 @@ false ; for false
 ;; allowing (among other things) functions to recurse indefinitely
 ;; without overflowing the stack, provided the call is in a tail
 ;; position.
-
+(fn factorial [x acc]
+  (if (= 0 x)
+      acc
+      (factorial (- x 1) (* x acc))))
+(factorial 5 1) ;; -> 120
 ;; The final form in this and all other function forms is used as the
 ;; return value.
 
