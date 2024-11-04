@@ -505,7 +505,7 @@ false ; for false
            {:b {}}}
       field :c]
   (tset tbl :a :b field "d") tbl) ; => .. .. {:a {:b {:c "d"}}}
-
+(local mytable [9 1 5])
 ;;,------------------------
 ;;| `case` pattern matching
 ;;`------------------------
@@ -516,7 +516,7 @@ false ; for false
 (case mytable
   59      :will-never-match-hopefully
   [9 q 5] (print :q q)
-  [1 a b] (+ a b))q
+  [1 a b] (+ a b))
 
 ;; Patterns can be tables, literal values, or symbols. Any symbol is
 ;; implicitly checked to be not nil. Symbols can be repeated in an
@@ -631,8 +631,8 @@ false ; for false
 ;; value of the entire expression.
 (fn handle [conn token]
   (case-try (conn:receive :*l)
-    input (parse input)
-    (command-name params (= token)) (commands.get command-name)
+    input (parse input) ;; matching
+    (command-name params token) (commands.get command-name)
     command (pcall command (table.unpack params))
     (catch
      (_ :timeout) nil
@@ -652,10 +652,10 @@ false ; for false
 ;; with those in the original steps.
 (fn handle [conn token]
   (match-try (conn:receive :*l)
-    input (parse input)
-    (command-name params token) (commands.get command-name)
-    command (pcall command (table.unpack params))
-    (catch
+    input (parse input)  ;; matching
+    (command-name params token) (commands.get command-name) ;; matching
+    command (pcall command (table.unpack params)) ;; matching
+    (catch ;; mismatches
       (_ :timeout) nil
       (_ :closed) (pcall disconnect conn "connection closed")
       (_ msg) (print "Error handling input" msg))))
